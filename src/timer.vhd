@@ -11,26 +11,35 @@ end timer;
 
 -- generates a pulse after 'tgt' clock cycles
 architecture Behavorial of timer is	
-	signal is_done : std_logic := '0';
+    type state_type is (S0, S1);
+	signal ready, is_done : std_logic := '0';
 	signal count : std_logic_vector(3 downto 0) := "0000";
+	signal state : state_type := S0;
 begin
-	process(clk, tgt)
+	process(clk, en, tgt)
 	begin
-		if clk = '1' and clk'event then
-			if en = '1' then
-				if count = "0000" or tgt = "0000" then
-					is_done <= '1';
-					count <= tgt;
+		if en = '1' then
+			if clk = '1' and clk'event then
+				case state is
+					when S0 =>
+								count <= tgt;
+								is_done <= '0';
+								state <= S1;
+					when S1 =>
+								if count = "0000" or tgt = "0000" then
+									count <= tgt;
+									is_done <= '1';
+								end if;
+				end case;
+			elsif clk='0' and clk'event then
+				if count /= "0000" then
+					is_done <= '0';
+					count <= std_logic_vector(unsigned(count) - 1);
 				end if;
-			else
-				count <= "0000";
-				is_done <= '0';
 			end if;
-		elsif clk='0' and clk'event then
-			if en = '1' and count /= "0000" then
-				is_done <= '0';
-				count <= std_logic_vector(unsigned(count) - 1);
-			end if;
+		else
+			state <= S0;
+			is_done <= '0';
 		end if;
 	end process;
 
