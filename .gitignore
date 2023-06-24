@@ -1,0 +1,7 @@
+*_tb
+build
+.vscode
+*.o
+*.cf
+*.vcd
+notes
